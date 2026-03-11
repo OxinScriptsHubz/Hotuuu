@@ -1,0 +1,480 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SilveRip Shop</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins, sans-serif;
+}
+
+body{
+background:#f7f7f7;
+color:#333;
+}
+
+header{
+background:#2f855a;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+header h1{
+font-size:26px;
+}
+
+header p{
+font-size:14px;
+opacity:.9;
+}
+
+.container{
+padding:15px;
+max-width:1100px;
+margin:auto;
+}
+
+.filters{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:15px;
+}
+
+.filters button{
+border:none;
+padding:8px 14px;
+border-radius:20px;
+background:#e2e8f0;
+cursor:pointer;
+}
+
+.filters button.active{
+background:#2f855a;
+color:white;
+}
+
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+}
+
+.card{
+background:white;
+border-radius:10px;
+padding:10px;
+box-shadow:0 3px 8px rgba(0,0,0,.08);
+display:flex;
+flex-direction:column;
+}
+
+.card img{
+width:100%;
+height:140px;
+object-fit:cover;
+border-radius:8px;
+}
+
+.card h3{
+font-size:15px;
+margin:6px 0;
+}
+
+.price{
+font-weight:600;
+color:#2f855a;
+}
+
+.card button{
+margin-top:auto;
+background:#2f855a;
+color:white;
+border:none;
+padding:8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.cart-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#2f855a;
+color:white;
+padding:12px 16px;
+border-radius:50px;
+cursor:pointer;
+box-shadow:0 5px 12px rgba(0,0,0,.2);
+}
+
+.cart-modal{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,.4);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.cart-content{
+background:white;
+width:90%;
+max-width:400px;
+border-radius:10px;
+padding:20px;
+max-height:80vh;
+overflow:auto;
+}
+
+.cart-item{
+display:flex;
+justify-content:space-between;
+margin-bottom:10px;
+}
+
+.qty button{
+padding:3px 7px;
+}
+
+.total{
+font-weight:600;
+margin-top:10px;
+}
+
+.checkout{
+margin-top:10px;
+background:#2f855a;
+color:white;
+border:none;
+padding:10px;
+width:100%;
+border-radius:6px;
+}
+
+form input,form textarea{
+width:100%;
+padding:8px;
+margin:6px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+.whatsapp{
+position:fixed;
+left:20px;
+bottom:20px;
+background:#25D366;
+color:white;
+padding:12px 16px;
+border-radius:50px;
+text-decoration:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>SilveRip Shop</h1>
+<p>Fresh groceries delivered to your door</p>
+</header>
+
+<div class="container">
+
+<div class="filters">
+<button class="active" onclick="filterProducts('All')">All</button>
+<button onclick="filterProducts('Groceries')">Groceries</button>
+<button onclick="filterProducts('Dairy')">Dairy</button>
+<button onclick="filterProducts('Snacks')">Snacks</button>
+<button onclick="filterProducts('Beverages')">Beverages</button>
+</div>
+
+<div class="products" id="products"></div>
+
+</div>
+
+<div class="cart-btn" onclick="openCart()">
+🛒 Cart (<span id="cartCount">0</span>)
+</div>
+
+<div class="cart-modal" id="cartModal">
+<div class="cart-content">
+
+<h3>Your Cart</h3>
+<div id="cartItems"></div>
+
+<div class="total">
+Total: ₹<span id="cartTotal">0</span>
+</div>
+
+<button class="checkout" onclick="showCheckout()">Place Order</button>
+
+<div id="checkoutForm" style="display:none">
+
+<form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST">
+
+<input type="hidden" name="order" id="orderData">
+
+<input required name="name" placeholder="Customer Name">
+<input required name="phone" placeholder="Phone Number">
+<textarea required name="address" placeholder="Delivery Address"></textarea>
+<textarea name="notes" placeholder="Special Instructions"></textarea>
+
+<button class="checkout" type="submit" onclick="prepareOrder()">Submit Order</button>
+
+</form>
+
+</div>
+
+</div>
+</div>
+
+<a class="whatsapp" href="https://wa.me/36276888">WhatsApp</a>
+
+<script>
+
+const products=[
+{
+name:"Aashirvaad Atta (5kg)",
+price:280,
+category:"Groceries",
+img:"https://i.ibb.co/8x5qFzX/atta.jpg",
+desc:"Premium whole wheat flour"
+},
+
+{
+name:"Amul Butter (500g)",
+price:280,
+category:"Dairy",
+img:"https://i.ibb.co/f8P9xqM/butter.jpg",
+desc:"Fresh salted butter"
+},
+
+{
+name:"Amul Milk (1L)",
+price:60,
+category:"Dairy",
+img:"https://i.ibb.co/BtB3Kx5/milk.jpg",
+desc:"Fresh full cream milk"
+},
+
+{
+name:"Lay's Chips",
+price:20,
+category:"Snacks",
+img:"https://i.ibb.co/5xYwXyS/lays.jpg",
+desc:"Crispy potato chips"
+},
+
+{
+name:"Maggi Noodles",
+price:15,
+category:"Groceries",
+img:"https://i.ibb.co/WfFZqC8/maggi.jpg",
+desc:"2 minute noodles"
+},
+
+{
+name:"Coca Cola 1L",
+price:80,
+category:"Beverages",
+img:"https://i.ibb.co/dK8Kk6v/coke.jpg",
+desc:"Chilled soft drink"
+},
+
+{
+name:"Pepsi 1L",
+price:80,
+category:"Beverages",
+img:"https://i.ibb.co/3yS7C6p/pepsi.jpg",
+desc:"Refreshing cola"
+},
+
+{
+name:"Britannia Good Day",
+price:35,
+category:"Snacks",
+img:"https://i.ibb.co/x8z2XkH/goodday.jpg",
+desc:"Butter cookies"
+}
+
+]
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[]
+
+function renderProducts(list){
+
+const container=document.getElementById("products")
+
+container.innerHTML=""
+
+list.forEach((p,i)=>{
+
+container.innerHTML+=`
+<div class="card">
+
+<img src="${p.img}" loading="lazy" alt="${p.name}">
+
+<h3>${p.name}</h3>
+
+<div class="price">₹${p.price}</div>
+
+<button onclick="addToCart(${i})">Add to Cart</button>
+
+</div>
+`
+
+})
+
+}
+
+renderProducts(products)
+
+function filterProducts(cat){
+
+if(cat==="All") renderProducts(products)
+
+else renderProducts(products.filter(p=>p.category===cat))
+
+}
+
+function addToCart(index){
+
+const item=products[index]
+
+const found=cart.find(p=>p.name===item.name)
+
+if(found) found.qty++
+
+else cart.push({...item,qty:1})
+
+saveCart()
+
+}
+
+function saveCart(){
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+updateCart()
+
+}
+
+function updateCart(){
+
+document.getElementById("cartCount").innerText=
+cart.reduce((a,b)=>a+b.qty,0)
+
+}
+
+updateCart()
+
+function openCart(){
+
+const modal=document.getElementById("cartModal")
+
+modal.style.display="flex"
+
+renderCart()
+
+}
+
+function renderCart(){
+
+const list=document.getElementById("cartItems")
+
+list.innerHTML=""
+
+let total=0
+
+cart.forEach((item,i)=>{
+
+total+=item.price*item.qty
+
+list.innerHTML+=`
+
+<div class="cart-item">
+
+<div>
+
+${item.name}<br>
+₹${item.price}
+
+</div>
+
+<div class="qty">
+
+<button onclick="changeQty(${i},-1)">-</button>
+
+${item.qty}
+
+<button onclick="changeQty(${i},1)">+</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+document.getElementById("cartTotal").innerText=total
+
+}
+
+function changeQty(i,val){
+
+cart[i].qty+=val
+
+if(cart[i].qty<=0) cart.splice(i,1)
+
+saveCart()
+
+renderCart()
+
+}
+
+function showCheckout(){
+
+document.getElementById("checkoutForm").style.display="block"
+
+}
+
+function prepareOrder(){
+
+let text="Order Details:\n"
+
+cart.forEach(i=>{
+
+text+=`${i.name} x ${i.qty} = ₹${i.qty*i.price}\n`
+
+})
+
+text+=`\nTotal: ₹${document.getElementById("cartTotal").innerText}`
+
+document.getElementById("orderData").value=text
+
+localStorage.removeItem("cart")
+
+}
+
+</script>
+
+</body>
+</html>
+```
